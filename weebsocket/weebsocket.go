@@ -1,11 +1,28 @@
 package weebsocket
 
-import "net/http"
+import (
+	"io"
+	"net/http"
+)
 
-const base_uri string = "https://monitoringapi.solaredge.com/"
+const baseUri string = "https://monitoringapi.solaredge.com/"
 
-func get(endpoint string) {
-	response, err := http.Get(base_uri + endpoint)
+func get(endpoint string) string {
+	response, error := http.Get(baseUri + endpoint)
 
-	response.Body.
+	if error != nil {
+		return ""
+	}
+
+	body := response.Body
+
+	defer body.Close()
+
+	bytes, error := io.ReadAll(body)
+
+	if error != nil {
+		return ""
+	}
+
+	return string(bytes)
 }

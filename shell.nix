@@ -1,7 +1,7 @@
 { pkgs ? import <nixpkgs> {} }:
 
 pkgs.mkShell {
-  buildInputs = [ pkgs.git pkgs.vscodium ];
+  buildInputs = [ pkgs.git ];
 
   shellHook = ''
     codium --install-extension jnoortheen.nix-ide --force
