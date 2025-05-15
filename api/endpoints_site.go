@@ -2,18 +2,25 @@ package api
 
 import (
 	"fmt"
+	"net/url"
+	"strconv"
 	"strings"
 )
 
 // /sites/list
 func GetSiteList(params SiteListParams) string {
-	endpointString := "/sittes/list?"
+	endpointUrl := url.URL{
+		Scheme: "https",
+		Host:   "monitoringapi.solaredge.com",
+		Path:   "sites/list",
+	}
+	endpointValues := url.Values{}
 
 	if params.size != nil {
 		size := *params.size
 
 		if size > -1 && size < 101 {
-			endpointString = fmt.Sprintf("%ssize=%d&", endpointString, size)
+			endpointValues.Add("size", strconv.Itoa(size))
 		}
 	}
 
@@ -21,12 +28,12 @@ func GetSiteList(params SiteListParams) string {
 		startIndex := *params.startIndex
 
 		if startIndex > -1 {
-			endpointString = fmt.Sprintf("%sstartIndex=%d&", endpointString, startIndex)
+			endpointValues.Add("startIndex", strconv.Itoa(startIndex))
 		}
 	}
 
 	if params.searchText != "" {
-		endpointString = fmt.Sprintf("%ssearchText=%s&", endpointString, params.searchText)
+		endpointValues.Add("searchText", params.searchText)
 	}
 
 	if params.sortProperty != "" {
@@ -34,18 +41,29 @@ func GetSiteList(params SiteListParams) string {
 
 		switch sortProperty {
 		case "name":
+			endpointValues.Add("sortProperty", "Name")
 		case "country":
+			endpointValues.Add("sortProperty", "Country")
 		case "state":
+			endpointValues.Add("sortProperty", "State")
 		case "city":
+			endpointValues.Add("sortProperty", "City")
 		case "address":
+			endpointValues.Add("sortProperty", "Address")
 		case "zip":
+			endpointValues.Add("sortProperty", "Zip")
 		case "status":
+			endpointValues.Add("sortProperty", "Status")
 		case "peakpower":
+			endpointValues.Add("sortProperty", "PeakPower")
 		case "installationdate":
+			endpointValues.Add("sortProperty", "InstallationDate")
 		case "amount":
+			endpointValues.Add("sortProperty", "Amount")
 		case "maxseverity":
+			endpointValues.Add("sortProperty", "MaxSeverity")
 		case "creationtime":
-			endpointString = fmt.Sprintf("%ssortProperty=%s&", endpointString, sortProperty)
+			endpointValues.Add("sortProperty", "CreationTime")
 		}
 	}
 
@@ -54,12 +72,19 @@ func GetSiteList(params SiteListParams) string {
 
 		switch sortOrder {
 		case "asc":
+			endpointValues.Add("sortOrder", "ASC")
 		case "desc":
-			endpointString = fmt.Sprintf("%ssortProperty=%s&", endpointString, sortOrder)
+			endpointValues.Add("sortOrder", "DESC")
 		}
 	}
 
 	if len(params.status) > 0 {
+		statuses := map[string]bool{
+			"Active":   false,
+			"Pending":  false,
+			"Disabled": false,
+			"All":      false,
+		}
 		statusString := ""
 
 		for i := range params.status {
@@ -67,18 +92,29 @@ func GetSiteList(params SiteListParams) string {
 
 			switch status {
 			case "active":
+				statuses["Active"] = true
 			case "pending":
+				statuses["Pending"] = true
 			case "disabled":
+				statuses["Disabled"] = true
 			case "all":
-				statusString = fmt.Sprintf("%s%s,", statusString, status)
+				statuses["All"] = true
+			}
+		}
+
+		for key, value := range statuses {
+			if value {
+				statusString = fmt.Sprint(statusString, key, ',')
 			}
 		}
 
 		if len(statusString) > 0 {
 			statusString = statusString[:len(statusString)-1]
-			endpointString = fmt.Sprintf("%status=%s&", endpointString, statusString)
+			endpointValues.Add("status", statusString)
 		}
 	}
 
-	return endpointString
+	endpointUrl.RawQuery = endpointValues.Encode()
+
+	return endpointUrl.String()
 }
