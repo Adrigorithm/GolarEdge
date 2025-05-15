@@ -1,20 +1,48 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 )
 
-// /sites/list
-func GetSiteList(params SiteListParams) string {
-	endpointUrl := url.URL{
+func getBaseUrl(apiKey string) (url.URL, url.Values) {
+	baseUrl := url.URL {
 		Scheme: "https",
-		Host:   "monitoringapi.solaredge.com",
-		Path:   "sites/list",
+		Host: "monitoringapi.solaredge.com"
 	}
-	endpointValues := url.Values{}
+
+	values := url.Values {}
+
+	if apiKey != "" {
+		values.Add("api_key", apiKey)
+	}
+
+	return baseUrl, values
+}
+
+func getBasicParameterisedUrl(path string, apiKey string) (string, error) {
+	if apiKey == "" {
+		return "", errors.New("Please specify an API key.")
+	}
+
+	endpointUrl, endpointValues := getBaseUrl()
+	endpointUrl.Path = path
+	endpointUrl.RawQuery = endpointValues.Encode()
+
+	return endpointUrl.String(), nil
+}
+
+func GetSiteList(params SiteListParams, apiKey string) (string, error) {
+	if apiKey == "" {
+		return "", errors.New("Please specify an API key.")
+	}
+
+	endpointUrl, endpointValues := getBaseUrl()
+	endpointUrl.Path: "sites/list"
 
 	if params.size != nil {
 		size := *params.size
@@ -116,5 +144,68 @@ func GetSiteList(params SiteListParams) string {
 
 	endpointUrl.RawQuery = endpointValues.Encode()
 
-	return endpointUrl.String()
+	return endpointUrl.String(), nil
+}
+
+func GetSite(params SiteParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("Site ID must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/details", params.siteId)
+
+	return getBasicParameterisedUrl(path, apiKey)
+}
+
+func GetSiteDataStartAndEndDates(params SiteDataStartAndEndDates, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("Site ID must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/dataPeriod", params.siteId)
+
+	return getBasicParameterisedUrl(path, apiKey)
+}
+
+func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulk, apiKey string) (string, error) {
+	if len(params.siteIds) == 0 {
+		return "", errors.New("You must at least specify one Site ID")
+	}
+
+	siteIdsFiltered := []int {}
+	siteIdsString := ""
+
+	for i := range params.siteIds {
+		siteId := params.siteIds[i]
+
+		if siteId < 0 {
+			continue
+		}
+
+		isDuplicate := false
+
+		for j := range siteIdsFiltered {
+			if siteIdsFiltered[j] == siteId {
+				isDuplicate = true
+				break
+			}
+		}
+
+		if !isDuplicate {
+			siteIdsFiltered = append(siteIdsFiltered, siteId)
+			siteIdsString = fmt.Sprintf("%s%s,", siteIdsString, strconv.Itoa(siteId))
+		}
+	}
+
+	if siteIdsString == "" {
+		return "", errors.New("No valid Site IDs found. Site IDs must be positive integers")
+	}
+
+	siteIdsString = siteIdsString[:len(siteIdsString)-1]
+
+	path := fmt.Sprintf("sites/%s/dataPeriod", siteIdsString)
+
+	return getBasicParameterisedUrl(path, apiKey)
+
+
 }

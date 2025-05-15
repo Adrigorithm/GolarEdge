@@ -15,3 +15,15 @@ type SiteListParams struct {
 	sortOrder    string
 	status       []string
 }
+
+type SiteParams struct {
+	siteId int
+}
+
+type SiteDataStartAndEndDates struct {
+	siteId int
+}
+
+type SiteDataStartAndEndDatesBulk struct {
+	siteIds []int
+}

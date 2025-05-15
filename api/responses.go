@@ -39,3 +39,21 @@ type Site struct {
 
 	publicSettings PublicSettings
 }
+
+type DataPeriod struct {
+	// Precision: 2006-01-02 15:04:05 or nil if the site is not transmitting
+	startDate time.Time
+
+	// Precision: 2006-01-02 15:04:05 or nil if the site is not transmitting
+	endDate time.Time
+}
+
+type DataPeriod1 struct {
+	id int
+
+	// Precision: 2006-01-02 15:04:05 or nil if the site is not transmitting
+	startDate time.Time
+
+	// Precision: 2006-01-02 15:04:05 or nil if the site is not transmitting
+	endDate time.Time
+}
