@@ -1,5 +1,7 @@
 package api
 
+import "time"
+
 // SiteListParams represents the parameters for the GetSiteList endpoint function.
 // if size is nil, the default value of 100 will be used.
 // if startIndex is nil, the default value of 0 will be used.
@@ -20,10 +22,25 @@ type SiteParams struct {
 	siteId int
 }
 
-type SiteDataStartAndEndDates struct {
+type SiteDataStartAndEndDatesParams struct {
 	siteId int
 }
 
-type SiteDataStartAndEndDatesBulk struct {
+type SiteDataStartAndEndDatesBulkParams struct {
 	siteIds []int
+}
+
+// SiteEnergyParams represents the parameters for the GetSiteEnergy endpoint function.
+// if timeUnit is not in ["QUARTER_OF_AN_HOUR", "HOUR", "DAY", "WEEK", "MONTH", "YEAR"], it will default to "DAY".
+// TODO check the limitations for this manually because the api docs SUCK
+type SiteEnergyParams struct {
+	siteId int
+
+	// Precision: 2006-01-02 15:04:05
+	startDate time.Time
+
+	// Precision: 2006-01-02 15:04:05
+	endDate time.Time
+
+	timeUnit string
 }

@@ -12,7 +12,7 @@ import (
 func getBaseUrl(apiKey string) (url.URL, url.Values) {
 	baseUrl := url.URL {
 		Scheme: "https",
-		Host: "monitoringapi.solaredge.com"
+		Host: "monitoringapi.solaredge.com",
 	}
 
 	values := url.Values {}
@@ -29,7 +29,7 @@ func getBasicParameterisedUrl(path string, apiKey string) (string, error) {
 		return "", errors.New("Please specify an API key.")
 	}
 
-	endpointUrl, endpointValues := getBaseUrl()
+	endpointUrl, endpointValues := getBaseUrl(apiKey)
 	endpointUrl.Path = path
 	endpointUrl.RawQuery = endpointValues.Encode()
 
@@ -41,8 +41,8 @@ func GetSiteList(params SiteListParams, apiKey string) (string, error) {
 		return "", errors.New("Please specify an API key.")
 	}
 
-	endpointUrl, endpointValues := getBaseUrl()
-	endpointUrl.Path: "sites/list"
+	endpointUrl, endpointValues := getBaseUrl(apiKey)
+	endpointUrl.Path = "sites/list"
 
 	if params.size != nil {
 		size := *params.size
@@ -157,7 +157,7 @@ func GetSite(params SiteParams, apiKey string) (string, error) {
 	return getBasicParameterisedUrl(path, apiKey)
 }
 
-func GetSiteDataStartAndEndDates(params SiteDataStartAndEndDates, apiKey string) (string, error) {
+func GetSiteDataStartAndEndDates(params SiteDataStartAndEndDatesParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("Site ID must be an int >= 0")
 	}
@@ -167,7 +167,7 @@ func GetSiteDataStartAndEndDates(params SiteDataStartAndEndDates, apiKey string)
 	return getBasicParameterisedUrl(path, apiKey)
 }
 
-func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulk, apiKey string) (string, error) {
+func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulkParams, apiKey string) (string, error) {
 	if len(params.siteIds) == 0 {
 		return "", errors.New("You must at least specify one Site ID")
 	}
@@ -178,23 +178,12 @@ func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulk, apiKey
 	for i := range params.siteIds {
 		siteId := params.siteIds[i]
 
-		if siteId < 0 {
+		if siteId < 0 || slices.Contains(siteIdsFiltered, siteId) {
 			continue
 		}
 
-		isDuplicate := false
-
-		for j := range siteIdsFiltered {
-			if siteIdsFiltered[j] == siteId {
-				isDuplicate = true
-				break
-			}
-		}
-
-		if !isDuplicate {
-			siteIdsFiltered = append(siteIdsFiltered, siteId)
-			siteIdsString = fmt.Sprintf("%s%s,", siteIdsString, strconv.Itoa(siteId))
-		}
+		siteIdsFiltered = append(siteIdsFiltered, siteId)
+		siteIdsString = fmt.Sprintf("%s%s,", siteIdsString, strconv.Itoa(siteId))
 	}
 
 	if siteIdsString == "" {
