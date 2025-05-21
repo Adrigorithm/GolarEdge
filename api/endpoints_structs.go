@@ -36,10 +36,10 @@ type SiteDataStartAndEndDatesBulkParams struct {
 type SiteEnergyParams struct {
 	siteId int
 
-	// Precision: 2006-01-02 15:04:05
+	// Precision: 2006-01-02
 	startDate time.Time
 
-	// Precision: 2006-01-02 15:04:05
+	// Precision: 2006-01-02
 	endDate time.Time
 
 	timeUnit string
