@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func getUrl(apiKey string, path string, values url.Values) (string, error) {
@@ -171,7 +172,7 @@ func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulkParams, 
 		}
 
 		siteIdsFiltered = append(siteIdsFiltered, siteId)
-		siteIdsString = fmt.Sprintf("%s%s,", siteIdsString, strconv.Itoa(siteId))
+		siteIdsString = fmt.Sprintf("%s%d,", siteIdsString, siteId)
 	}
 
 	if siteIdsString == "" {
@@ -186,46 +187,76 @@ func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulkParams, 
 
 }
 
+func GetSiteEnergyWithParsedSites(idsString string, startDate time.Time, endDate time.Time, timeUnit string, apiKey string) (string, error) {
+	path := fmt.Sprintf("site/%s/energy", idsString)
+	values := url.Values{}
+
+	if startDate.IsZero() || endDate.IsZero() {
+		return "", errors.New("both start and end date are required")
+	}
+
+	if endDate.Before(startDate) {
+		return "", errors.New("end date must be after the start date")
+	}
+
+	timeUnitUpper := strings.ToUpper(timeUnit)
+
+	switch timeUnitUpper {
+	case "QUARTER_OF_AN_HOUR":
+	case "HOUR":
+		if startDate.AddDate(0, 1, 0).Compare(endDate) < 1 {
+			return "", errors.New("specified time unit limits difference in start and end date to one month")
+		}
+
+		values.Add("timeUnit", timeUnitUpper)
+	case "WEEK":
+	case "MONTH":
+	case "YEAR":
+		values.Add("timeUnit", timeUnitUpper)
+	default:
+		if startDate.AddDate(1, 0, 0).Compare(endDate) > 1 {
+			return "", errors.New("specified time unit (day) limits difference in start and end date to one year")
+		}
+
+		values.Add("DAY", timeUnitUpper)
+	}
+
+	values.Add("startDate", startDate.String())
+	values.Add("endDate", endDate.String())
+
+	return getUrl(apiKey, path, values)
+}
+
 func GetSiteEnergy(params SiteEnergyParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
 
-	path := fmt.Sprintf("site/%d/energy", params.siteId)
-	values := url.Values{}
+	return GetSiteEnergyWithParsedSites(strconv.Itoa(params.siteId), params.startDate, params.endDate, params.timeUnit, apiKey)
+}
 
-	if params.startDate.IsZero() || params.endDate.IsZero() {
-		return "", errors.New("both start and end date are required")
+func GetSiteEnergyBulk(params SiteEnergyBulkParams, apiKey string) (string, error) {
+	if len(params.siteIds) == 0 {
+		return "", errors.New("you must at least specify one site id")
 	}
 
-	if params.endDate.Before(params.startDate) {
-		return "", errors.New("end date must be after the start date")
-	}
+	siteIdsFiltered := []int{}
+	siteIdsString := ""
 
-	timeUnit := strings.ToUpper(params.timeUnit)
+	for i := range params.siteIds {
+		siteId := params.siteIds[i]
 
-	switch timeUnit {
-	case "QUARTER_OF_AN_HOUR":
-	case "HOUR":
-		if params.startDate.AddDate(0, 1, 0).Compare(params.endDate) < 1 {
-			return "", errors.New("specified time unit limits difference in start and end date to one month")
+		if siteId < 0 || slices.Contains(siteIdsFiltered, siteId) {
+			continue
 		}
 
-		values.Add("timeUnit", timeUnit)
-	case "WEEK":
-	case "MONTH":
-	case "YEAR":
-		values.Add("timeUnit", timeUnit)
-	default:
-		if params.startDate.AddDate(1, 0, 0).Compare(params.endDate) > 1 {
-			return "", errors.New("specified time unit (day) limits difference in start and end date to one year")
-		}
-
-		values.Add("DAY", timeUnit)
+		siteIdsFiltered = append(siteIdsFiltered, siteId)
+		siteIdsString = fmt.Sprintf("%s%d,", siteIdsString, siteId)
 	}
 
-	values.Add("startDate", params.startDate.String())
-	values.Add("endDate", params.endDate.String())
+	if siteIdsString == "" {
+		return "", errors.New("no valid site ids found. site ids must be positive integers")
+	}
 
-	return getUrl(apiKey, path, values)
+	return GetSiteEnergyWithParsedSites(siteIdsString, params.startDate, params.endDate, params.timeUnit, apiKey)
 }

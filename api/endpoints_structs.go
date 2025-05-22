@@ -32,9 +32,22 @@ type SiteDataStartAndEndDatesBulkParams struct {
 
 // SiteEnergyParams represents the parameters for the GetSiteEnergy endpoint function.
 // if timeUnit is not in ["QUARTER_OF_AN_HOUR", "HOUR", "DAY", "WEEK", "MONTH", "YEAR"], it will default to "DAY".
-// TODO check the limitations for this manually because the api docs SUCK
 type SiteEnergyParams struct {
 	siteId int
+
+	// Precision: 2006-01-02
+	startDate time.Time
+
+	// Precision: 2006-01-02
+	endDate time.Time
+
+	timeUnit string
+}
+
+// SiteEnergyBulkParams represents the parameters for the GetSiteBulkEnergy endpoint function.
+// if timeUnit is not in ["QUARTER_OF_AN_HOUR", "HOUR", "DAY", "WEEK", "MONTH", "YEAR"], it will default to "DAY".
+type SiteEnergyBulkParams struct {
+	siteIds []int
 
 	// Precision: 2006-01-02
 	startDate time.Time
