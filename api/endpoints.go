@@ -9,46 +9,36 @@ import (
 	"strings"
 )
 
-func getBaseUrl(apiKey string) (url.URL, url.Values) {
-	baseUrl := url.URL {
-		Scheme: "https",
-		Host: "monitoringapi.solaredge.com",
-	}
-
-	values := url.Values {}
-
-	if apiKey != "" {
-		values.Add("api_key", apiKey)
-	}
-
-	return baseUrl, values
-}
-
-func getBasicParameterisedUrl(path string, apiKey string) (string, error) {
+func getUrl(apiKey string, path string, values url.Values) (string, error) {
 	if apiKey == "" {
-		return "", errors.New("Please specify an API key.")
+		return "", errors.New("please specify an api key")
 	}
 
-	endpointUrl, endpointValues := getBaseUrl(apiKey)
-	endpointUrl.Path = path
-	endpointUrl.RawQuery = endpointValues.Encode()
+	uriBuilder := url.URL{
+		Scheme: "https",
+		Host:   "monitoringapi.solaredge.com",
+		Path:   path,
+	}
 
-	return endpointUrl.String(), nil
+	if values == nil {
+		values = url.Values{}
+	}
+
+	values.Add("api_key", apiKey)
+	uriBuilder.RawQuery = values.Encode()
+
+	return uriBuilder.String(), nil
 }
 
 func GetSiteList(params SiteListParams, apiKey string) (string, error) {
-	if apiKey == "" {
-		return "", errors.New("Please specify an API key.")
-	}
-
-	endpointUrl, endpointValues := getBaseUrl(apiKey)
-	endpointUrl.Path = "sites/list"
+	values := url.Values{}
+	path := "sites/list"
 
 	if params.size != nil {
 		size := *params.size
 
 		if size > -1 && size < 101 {
-			endpointValues.Add("size", strconv.Itoa(size))
+			values.Add("size", strconv.Itoa(size))
 		}
 	}
 
@@ -56,12 +46,12 @@ func GetSiteList(params SiteListParams, apiKey string) (string, error) {
 		startIndex := *params.startIndex
 
 		if startIndex > -1 {
-			endpointValues.Add("startIndex", strconv.Itoa(startIndex))
+			values.Add("startIndex", strconv.Itoa(startIndex))
 		}
 	}
 
 	if params.searchText != "" {
-		endpointValues.Add("searchText", params.searchText)
+		values.Add("searchText", params.searchText)
 	}
 
 	if params.sortProperty != "" {
@@ -69,29 +59,29 @@ func GetSiteList(params SiteListParams, apiKey string) (string, error) {
 
 		switch sortProperty {
 		case "name":
-			endpointValues.Add("sortProperty", "Name")
+			values.Add("sortProperty", "Name")
 		case "country":
-			endpointValues.Add("sortProperty", "Country")
+			values.Add("sortProperty", "Country")
 		case "state":
-			endpointValues.Add("sortProperty", "State")
+			values.Add("sortProperty", "State")
 		case "city":
-			endpointValues.Add("sortProperty", "City")
+			values.Add("sortProperty", "City")
 		case "address":
-			endpointValues.Add("sortProperty", "Address")
+			values.Add("sortProperty", "Address")
 		case "zip":
-			endpointValues.Add("sortProperty", "Zip")
+			values.Add("sortProperty", "Zip")
 		case "status":
-			endpointValues.Add("sortProperty", "Status")
+			values.Add("sortProperty", "Status")
 		case "peakpower":
-			endpointValues.Add("sortProperty", "PeakPower")
+			values.Add("sortProperty", "PeakPower")
 		case "installationdate":
-			endpointValues.Add("sortProperty", "InstallationDate")
+			values.Add("sortProperty", "InstallationDate")
 		case "amount":
-			endpointValues.Add("sortProperty", "Amount")
+			values.Add("sortProperty", "Amount")
 		case "maxseverity":
-			endpointValues.Add("sortProperty", "MaxSeverity")
+			values.Add("sortProperty", "MaxSeverity")
 		case "creationtime":
-			endpointValues.Add("sortProperty", "CreationTime")
+			values.Add("sortProperty", "CreationTime")
 		}
 	}
 
@@ -100,9 +90,9 @@ func GetSiteList(params SiteListParams, apiKey string) (string, error) {
 
 		switch sortOrder {
 		case "asc":
-			endpointValues.Add("sortOrder", "ASC")
+			values.Add("sortOrder", "ASC")
 		case "desc":
-			endpointValues.Add("sortOrder", "DESC")
+			values.Add("sortOrder", "DESC")
 		}
 	}
 
@@ -138,41 +128,39 @@ func GetSiteList(params SiteListParams, apiKey string) (string, error) {
 
 		if len(statusString) > 0 {
 			statusString = statusString[:len(statusString)-1]
-			endpointValues.Add("status", statusString)
+			values.Add("status", statusString)
 		}
 	}
 
-	endpointUrl.RawQuery = endpointValues.Encode()
-
-	return endpointUrl.String(), nil
+	return getUrl(apiKey, path, values)
 }
 
 func GetSite(params SiteParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
-		return "", errors.New("Site ID must be an int >= 0")
+		return "", errors.New("site id must be an int >= 0")
 	}
 
 	path := fmt.Sprintf("site/%d/details", params.siteId)
 
-	return getBasicParameterisedUrl(path, apiKey)
+	return getUrl(apiKey, path, nil)
 }
 
 func GetSiteDataStartAndEndDates(params SiteDataStartAndEndDatesParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
-		return "", errors.New("Site ID must be an int >= 0")
+		return "", errors.New("site id must be an int >= 0")
 	}
 
 	path := fmt.Sprintf("site/%d/dataPeriod", params.siteId)
 
-	return getBasicParameterisedUrl(path, apiKey)
+	return getUrl(apiKey, path, nil)
 }
 
 func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulkParams, apiKey string) (string, error) {
 	if len(params.siteIds) == 0 {
-		return "", errors.New("You must at least specify one Site ID")
+		return "", errors.New("you must at least specify one site id")
 	}
 
-	siteIdsFiltered := []int {}
+	siteIdsFiltered := []int{}
 	siteIdsString := ""
 
 	for i := range params.siteIds {
@@ -187,14 +175,57 @@ func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulkParams, 
 	}
 
 	if siteIdsString == "" {
-		return "", errors.New("No valid Site IDs found. Site IDs must be positive integers")
+		return "", errors.New("no valid site ids found. site ids must be positive integers")
 	}
 
 	siteIdsString = siteIdsString[:len(siteIdsString)-1]
 
 	path := fmt.Sprintf("sites/%s/dataPeriod", siteIdsString)
 
-	return getBasicParameterisedUrl(path, apiKey)
+	return getUrl(apiKey, path, nil)
 
+}
 
+func GetSiteEnergy(params SiteEnergyParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/energy", params.siteId)
+	values := url.Values{}
+
+	if params.startDate.IsZero() || params.endDate.IsZero() {
+		return "", errors.New("both start and end date are required")
+	}
+
+	if params.endDate.Before(params.startDate) {
+		return "", errors.New("end date must be after the start date")
+	}
+
+	timeUnit := strings.ToUpper(params.timeUnit)
+
+	switch timeUnit {
+	case "QUARTER_OF_AN_HOUR":
+	case "HOUR":
+		if params.startDate.AddDate(0, 1, 0).Compare(params.endDate) < 1 {
+			return "", errors.New("specified time unit limits difference in start and end date to one month")
+		}
+
+		values.Add("timeUnit", timeUnit)
+	case "WEEK":
+	case "MONTH":
+	case "YEAR":
+		values.Add("timeUnit", timeUnit)
+	default:
+		if params.startDate.AddDate(1, 0, 0).Compare(params.endDate) > 1 {
+			return "", errors.New("specified time unit (day) limits difference in start and end date to one year")
+		}
+
+		values.Add("DAY", timeUnit)
+	}
+
+	values.Add("startDate", params.startDate.String())
+	values.Add("endDate", params.endDate.String())
+
+	return getUrl(apiKey, path, values)
 }
