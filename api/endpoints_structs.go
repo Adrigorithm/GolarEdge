@@ -57,3 +57,24 @@ type SiteEnergyBulkParams struct {
 
 	timeUnit string
 }
+
+// SiteEnergyTimePeriodParams returns total energy on generated at two specific points in time (the startDate and endDate). This metric is pretty useless in my opinion (but it exists).
+type SiteEnergyTimePeriodParams struct {
+	siteId int
+
+	// Precision: 2006-01-02
+	startDate time.Time
+
+	// Precision: 2006-01-02
+	endDate time.Time
+}
+
+type SiteEnergyTimePeriodBulkParams struct {
+	siteIds []int
+
+	// Precision: 2006-01-02
+	startDate time.Time
+
+	// Precision: 2006-01-02
+	endDate time.Time
+}
