@@ -316,3 +316,59 @@ func GetSiteEnergyTimePeriodBulk(params SiteEnergyTimePeriodBulkParams, apiKey s
 
 	return GetSiteEnergyTimePeriodWithParsedSites(siteIdsString, params.startDate, params.endDate, apiKey)
 }
+
+func GetSitePowerWithParsedSites(idsString string, startTime time.Time, endTime time.Time, apiKey string) (string, error) {
+	path := fmt.Sprintf("site/%s/power", idsString)
+	values := url.Values{}
+
+	if startTime.IsZero() || endTime.IsZero() {
+		return "", errors.New("both start and end time are required")
+	}
+
+	if endTime.Before(startTime) {
+		return "", errors.New("end time must be after the start time")
+	}
+
+	if startTime.AddDate(0, 1, 0).Compare(endTime) > 1 {
+		return "", errors.New("this endpoint limits difference in start and end time to one month")
+	}
+
+	values.Add("startTime", startTime.String())
+	values.Add("endTime", endTime.String())
+
+	return getUrl(apiKey, path, values)
+}
+
+func GetSitePower(params SitePowerParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	return GetSitePowerWithParsedSites(strconv.Itoa(params.siteId), params.startTime, params.endTime, apiKey)
+}
+
+func GetSitePowerBulk(params SitePowerBulkParams, apiKey string) (string, error) {
+	if len(params.siteIds) == 0 {
+		return "", errors.New("you must at least specify one site id")
+	}
+
+	siteIdsFiltered := []int{}
+	siteIdsString := ""
+
+	for i := range params.siteIds {
+		siteId := params.siteIds[i]
+
+		if siteId < 0 || slices.Contains(siteIdsFiltered, siteId) {
+			continue
+		}
+
+		siteIdsFiltered = append(siteIdsFiltered, siteId)
+		siteIdsString = fmt.Sprintf("%s%d,", siteIdsString, siteId)
+	}
+
+	if siteIdsString == "" {
+		return "", errors.New("no valid site ids found. site ids must be positive integers")
+	}
+
+	return GetSitePowerWithParsedSites(siteIdsString, params.startTime, params.endTime, apiKey)
+}

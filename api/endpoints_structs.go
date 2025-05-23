@@ -78,3 +78,24 @@ type SiteEnergyTimePeriodBulkParams struct {
 	// Precision: 2006-01-02
 	endDate time.Time
 }
+
+// SitePowerParams return the site power measurements in 15 minutes resolution
+type SitePowerParams struct {
+	siteId int
+
+	// Precision: 2006-01-02 11:00:00
+	startTime time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endTime time.Time
+}
+
+type SitePowerBulkParams struct {
+	siteIds []int
+
+	// Precision: 2006-01-02 11:00:00
+	startTime time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endTime time.Time
+}
