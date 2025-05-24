@@ -218,7 +218,7 @@ func GetSiteEnergyWithParsedSites(idsString string, startDate time.Time, endDate
 			return "", errors.New("specified time unit (day) limits difference in start and end date to one year")
 		}
 
-		values.Add("DAY", timeUnitUpper)
+		values.Add("timeUnit", "DAY")
 	}
 
 	values.Add("startDate", startDate.String())
@@ -439,7 +439,7 @@ func GetSitePowerDetailed(params SitePowerDetailedParams, apiKey string) (string
 			"Consumption":  false,
 			"SelfConsumption": false,
 			"FeedIn":      false,
-			"Purchased": false
+			"Purchased": false,
 		}
 		metersString := ""
 
@@ -476,4 +476,101 @@ func GetSitePowerDetailed(params SitePowerDetailedParams, apiKey string) (string
 	values.Add("endTime", params.endTime.String())
 
 	return getUrl(apiKey, path, values)
+}
+
+func GetSiteEnergyDetailed(params SiteEnergyDetailedParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/energyDetails", params.siteId)
+	values := url.Values{}
+
+	if params.startTime.IsZero() || params.endTime.IsZero() {
+		return "", errors.New("both start and end time are required")
+	}
+
+	if params.endTime.Before(params.startTime) {
+		return "", errors.New("end time must be after the start time")
+	}
+
+	if params.startTime.AddDate(0, 1, 0).Compare(params.endTime) > 1 {
+		return "", errors.New("this endpoint limits difference in start and end time to one month")
+	}
+
+	timeUnitUpper := strings.ToUpper(params.timeUnit)
+
+	switch timeUnitUpper {
+		case "QUARTER_OF_AN_HOUR":
+		case "HOUR":
+			if params.startTime.AddDate(0, 1, 0).Compare(params.endTime) < 1 {
+				return "", errors.New("specified time unit limits difference in start and end date to one month")
+			}
+
+			values.Add("timeUnit", timeUnitUpper)
+		case "WEEK":
+		case "MONTH":
+		case "YEAR":
+			values.Add("timeUnit", timeUnitUpper)
+		default:
+			if params.startTime.AddDate(1, 0, 0).Compare(params.endTime) > 1 {
+				return "", errors.New("specified time unit (day) limits difference in start and end date to one year")
+			}
+
+			values.Add("timeUnit", "DAY")
+	}
+
+	if len(params.meters) > 0 {
+		meters := map[string]bool{
+			"Production":   false,
+			"Consumption":  false,
+			"SelfConsumption": false,
+			"FeedIn":      false,
+			"Purchased": false,
+		}
+		metersString := ""
+
+		for i := range params.meters {
+			meter := strings.ToLower(params.meters[i])
+
+			switch meter {
+				case "production":
+					meters["Production"] = true
+				case "consumption":
+					meters["Consumption"] = true
+				case "selfconsumption":
+					meters["SelfConsumption"] = true
+				case "feedin":
+					meters["FeedIn"] = true
+				case "purchased":
+					meters["Purchased"] = true
+			}
+		}
+
+		for key, value := range meters {
+			if value {
+				metersString = fmt.Sprint(metersString, key, ',')
+			}
+		}
+
+		if len(metersString) > 0 {
+			metersString = metersString[:len(metersString)-1]
+			values.Add("meters", metersString)
+		}
+	}
+
+	values.Add("startTime", params.startTime.String())
+	values.Add("endTime", params.endTime.String())
+
+	return getUrl(apiKey, path, values)
+}
+
+func GetSitePowerFlow(params SitePowerFlowParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/currentPowerFlow", params.siteId)
+
+	return getUrl(apiKey, path, nil)
 }

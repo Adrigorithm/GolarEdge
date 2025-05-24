@@ -119,5 +119,22 @@ type SitePowerDetailedParams struct {
 	// Precision: 2006-01-02 11:00:00
 	endTime time.Time
 
-	meters string
+	meters []string
+}
+
+type SiteEnergyDetailedParams struct {
+	siteId int
+
+	// Precision: 2006-01-02 11:00:00
+	startTime time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endTime time.Time
+
+	timeUnit string
+	meters []string
+}
+
+type SitePowerFlowParams struct {
+	siteId int
 }
