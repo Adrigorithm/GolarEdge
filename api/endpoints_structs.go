@@ -99,3 +99,25 @@ type SitePowerBulkParams struct {
 	// Precision: 2006-01-02 11:00:00
 	endTime time.Time
 }
+
+type SiteOverviewParams struct {
+	siteId int
+}
+
+type SiteOverviewBulkParams struct {
+	siteIds []int
+}
+
+// SitePowerDetailedParams returns detailed site power measurements from meters such as consumption, export (feed-in), import (purchase), etc.
+// meters is optional, an array of strings representing meters. If not specified, all meter readings are returned.
+type SitePowerDetailedParams struct {
+	siteId int
+
+	// Precision: 2006-01-02 11:00:00
+	startTime time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endTime time.Time
+
+	meters string
+}

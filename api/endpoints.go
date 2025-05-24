@@ -372,3 +372,108 @@ func GetSitePowerBulk(params SitePowerBulkParams, apiKey string) (string, error)
 
 	return GetSitePowerWithParsedSites(siteIdsString, params.startTime, params.endTime, apiKey)
 }
+
+func GetSiteOverview(params SiteOverviewParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("sites/%d/ovewview", params.siteId)
+
+	return getUrl(apiKey, path, nil)
+}
+
+func GetSiteOverviewBulk(params SiteOverviewBulkParams, apiKey string) (string, error) {
+	if len(params.siteIds) == 0 {
+		return "", errors.New("you must at least specify one site id")
+	}
+
+	siteIdsFiltered := []int{}
+	siteIdsString := ""
+
+	for i := range params.siteIds {
+		siteId := params.siteIds[i]
+
+		if siteId < 0 || slices.Contains(siteIdsFiltered, siteId) {
+			continue
+		}
+
+		siteIdsFiltered = append(siteIdsFiltered, siteId)
+		siteIdsString = fmt.Sprintf("%s%d,", siteIdsString, siteId)
+	}
+
+	if siteIdsString == "" {
+		return "", errors.New("no valid site ids found. site ids must be positive integers")
+	}
+
+	siteIdsString = siteIdsString[:len(siteIdsString)-1]
+
+	path := fmt.Sprintf("sites/%s/overview", siteIdsString)
+
+	return getUrl(apiKey, path, nil)
+}
+
+func GetSitePowerDetailed(params SitePowerDetailedParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/powerDetails", params.siteId)
+	values := url.Values{}
+
+	if params.startTime.IsZero() || params.endTime.IsZero() {
+		return "", errors.New("both start and end time are required")
+	}
+
+	if params.endTime.Before(params.startTime) {
+		return "", errors.New("end time must be after the start time")
+	}
+
+	if params.startTime.AddDate(0, 1, 0).Compare(params.endTime) > 1 {
+		return "", errors.New("this endpoint limits difference in start and end time to one month")
+	}
+
+	if len(params.meters) > 0 {
+		meters := map[string]bool{
+			"Production":   false,
+			"Consumption":  false,
+			"SelfConsumption": false,
+			"FeedIn":      false,
+			"Purchased": false
+		}
+		metersString := ""
+
+		for i := range params.meters {
+			meter := strings.ToLower(params.meters[i])
+
+			switch meter {
+				case "production":
+					meters["Production"] = true
+				case "consumption":
+					meters["Consumption"] = true
+				case "selfconsumption":
+					meters["SelfConsumption"] = true
+				case "feedin":
+					meters["FeedIn"] = true
+				case "purchased":
+					meters["Purchased"] = true
+			}
+		}
+
+		for key, value := range meters {
+			if value {
+				metersString = fmt.Sprint(metersString, key, ',')
+			}
+		}
+
+		if len(metersString) > 0 {
+			metersString = metersString[:len(metersString)-1]
+			values.Add("meters", metersString)
+		}
+	}
+
+	values.Add("startTime", params.startTime.String())
+	values.Add("endTime", params.endTime.String())
+
+	return getUrl(apiKey, path, values)
+}
