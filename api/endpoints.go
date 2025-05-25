@@ -574,3 +574,52 @@ func GetSitePowerFlow(params SitePowerFlowParams, apiKey string) (string, error)
 
 	return getUrl(apiKey, path, nil)
 }
+
+func GetStorageInformation(params StorageInformationParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/storageData", params.siteId)
+	values := url.Values{}
+
+	if params.startTime.IsZero() || params.endTime.IsZero() {
+		return "", errors.New("both start and end time are required")
+	}
+
+	if params.endTime.Before(params.startTime) {
+		return "", errors.New("end time must be after the start time")
+	}
+
+	if params.startTime.AddDate(0, 0, 7).Compare(params.endTime) > 1 {
+		return "", errors.New("this endpoint limits difference in start and end time to one week")
+	}
+
+	if (len(params.serials) > 0) {
+		serialsString := ""
+		serials := []string{}
+
+		for i := range params.serials {
+			serial := params.serials[i]
+			isDuplicate := false
+
+			for j := range serials {
+				if (serials[j] == serial) {
+					isDuplicate = true
+				}
+			}
+
+			if (!isDuplicate) {
+				serials = append(serials, serial)
+				serialsString = fmt.Sprint(serialsString, serial , ',')
+			}
+		}
+
+		values.Add("serials", serialsString[:len(serialsString)-1])
+	}
+
+	values.Add("startTime", params.startTime.String())
+	values.Add("endTime", params.endTime.String())
+
+	return getUrl(apiKey, path, values)
+}

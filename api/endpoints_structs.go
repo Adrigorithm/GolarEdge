@@ -138,3 +138,16 @@ type SiteEnergyDetailedParams struct {
 type SitePowerFlowParams struct {
 	siteId int
 }
+
+// StorageInformationParams returns storage information about the batteries
+type StorageInformationParams struct {
+	siteId int
+
+	// Precision: 2006-01-02 11:00:00
+	startTime time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endTime time.Time
+
+	serials []string
+}
