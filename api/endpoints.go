@@ -623,3 +623,58 @@ func GetStorageInformation(params StorageInformationParams, apiKey string) (stri
 
 	return getUrl(apiKey, path, values)
 }
+
+func GetSiteImage(params SiteImageParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/siteImage", params.siteId)
+	values := url.Values{}
+
+	if params.name != "" {
+		path = fmt.Sprint(path, '/', params.name)
+	}
+
+	if params.maxHeight != nil {
+		if *params.maxHeight <= 0 {
+			return "", errors.New("image max height (if specified) must be a positive integer > 0")
+		}
+
+		values.Add("maxHeight", strconv.Itoa(*params.maxHeight))
+	}
+
+	if params.maxWidth != nil {
+		if *params.maxWidth <= 0 {
+			return "", errors.New("image max width (if specified) must be a positive integer > 0")
+		}
+
+		values.Add("maxWidth", strconv.Itoa(*params.maxWidth))
+	}
+
+	if params.hash != nil {
+		values.Add("hash", strconv.Itoa(*params.hash))
+	}
+
+	return getUrl(apiKey, path, values)
+}
+
+func GetSiteEnvironmentalBenefits(params SiteEnvironmentalBenefitsParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/envBenefits", params.siteId)
+	values := url.Values{}
+
+	systemUnitsUpper := strings.ToUpper(params.systemUnits)
+
+	switch systemUnitsUpper {
+		case "METRICS":
+			values.Add("systemUnits", "Metrics")
+		case "IMPERIAL":
+			values.Add("systemUnits", "Imperial")
+	}
+
+	return getUrl(apiKey, path, values)
+}

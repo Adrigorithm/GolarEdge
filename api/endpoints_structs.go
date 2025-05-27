@@ -151,3 +151,22 @@ type StorageInformationParams struct {
 
 	serials []string
 }
+
+// SiteImageParams returns the site image (uploaded by the user).
+// The name parameter will be used as the name for the downloaded file (optional).
+// Specifying maxWidth or maxHeight will rescale the image using the original upload size, but maintaining the ratio. Setting either will ignore the hash parameter.
+// When the hash parameter is set the API will return a 304 error if the uploaded file has a different hash than the one provided.
+type SiteImageParams struct {
+	siteId int
+	name string
+	maxWidth *int
+	maxHeight *int
+	hash *int
+}
+
+// SiteEnvironmentalBenefitsParams returns the list of environmental benefits associated with the site energy production.
+// SystemUnits is either Metrics or Imerial (If not specified logged in user system units are used)
+type SiteEnvironmentalBenefitsParams struct {
+	siteId int
+	systemUnits string
+}
