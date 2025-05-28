@@ -2,6 +2,8 @@ package api
 
 import "time"
 
+// Site Data API
+
 // SiteListParams represents the parameters for the GetSiteList endpoint function.
 // if size is nil, the default value of 100 will be used.
 // if startIndex is nil, the default value of 0 will be used.
@@ -170,3 +172,39 @@ type SiteEnvironmentalBenefitsParams struct {
 	siteId int
 	systemUnits string
 }
+
+type InstallerLogoParams struct {
+	siteId int
+	name string
+}
+
+// Site Equipment API
+
+type ComponentsListParams struct {
+	siteId int
+}
+
+type InventoryParams struct {
+	siteId int
+}
+
+// InverterTechnicalDataParams returns specific inverter data for a given timeframe.
+// All parameters are required. The difference between startTime and endTime should not exceed one week.
+type InverterTechnicalDataParams struct {
+	siteId int
+	serialNumber string
+
+	// Precision: 2006-01-02 11:00:00
+	startTime time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endTime time.Time
+}
+
+type EquipmentChangeLogParams struct {
+	siteId int
+	serialNumber string
+}
+
+// Account List API
+

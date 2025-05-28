@@ -31,6 +31,8 @@ func getUrl(apiKey string, path string, values url.Values) (string, error) {
 	return uriBuilder.String(), nil
 }
 
+// Site Data API
+
 func GetSiteList(params SiteListParams, apiKey string) (string, error) {
 	values := url.Values{}
 	path := "sites/list"
@@ -677,4 +679,85 @@ func GetSiteEnvironmentalBenefits(params SiteEnvironmentalBenefitsParams, apiKey
 	}
 
 	return getUrl(apiKey, path, values)
+}
+
+func GetInstallerImage(params SiteImageParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/installerImage", params.siteId)
+	values := url.Values{}
+
+	if params.name != "" {
+		path = fmt.Sprint(path, '/', params.name)
+	}
+
+	return getUrl(apiKey, path, values)
+}
+
+// Site Equipment API
+
+func GetComponentsList(params ComponentsListParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("equipment/%d/list", params.siteId)
+
+	return getUrl(apiKey, path, nil)
+}
+
+func GetInventory(params InventoryParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/inventory", params.siteId)
+
+	return getUrl(apiKey, path, nil)
+}
+
+func GetInverterTechnicalData(params InverterTechnicalDataParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	if params.serialNumber == "" {
+		return "", errors.New("serialNumber must be valid (not null or empty string)")
+	}
+
+	path := fmt.Sprintf("equipment/%d/%s/data", params.siteId, params.serialNumber)
+	values := url.Values{}
+
+	if params.startTime.IsZero() || params.endTime.IsZero() {
+		return "", errors.New("both start and end time are required")
+	}
+
+	if params.endTime.Before(params.startTime) {
+		return "", errors.New("end time must be after the start time")
+	}
+
+	if params.startTime.AddDate(0, 0, 7).Compare(params.endTime) > 1 {
+		return "", errors.New("this endpoint limits difference in start and end time to one week")
+	}
+
+	values.Add("startTime", params.startTime.String())
+	values.Add("endTime", params.endTime.String())
+
+	return getUrl(apiKey, path, values)
+}
+
+func GetEquipmentChangeLog(params EquipmentChangeLogParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	if params.serialNumber == "" {
+		return "", errors.New("serialNumber must be valid (not null or empty string)")
+	}
+
+	path := fmt.Sprintf("equipment/%d/%s/changeLog", params.siteId, params.serialNumber)
+
+	return getUrl(apiKey, path, nil)
 }
