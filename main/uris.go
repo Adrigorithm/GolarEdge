@@ -1,4 +1,4 @@
-package api
+package main
 
 type Uris struct {
 	PUBLIC_URL string

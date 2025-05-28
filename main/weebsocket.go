@@ -1,4 +1,4 @@
-package weebsocket
+package main
 
 import (
 	"io"

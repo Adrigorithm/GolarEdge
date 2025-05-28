@@ -1,4 +1,4 @@
-package api
+package main
 
 type Location struct {
 	country  string
