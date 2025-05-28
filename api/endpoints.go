@@ -10,6 +10,22 @@ import (
 	"time"
 )
 
+func getUrlNoAuth (path string, values url.Values) string {
+	uriBuilder := url.URL{
+		Scheme: "https",
+		Host:   "monitoringapi.solaredge.com",
+		Path:   path,
+	}
+
+	if values == nil {
+		values = url.Values{}
+	}
+
+	uriBuilder.RawQuery = values.Encode()
+
+	return uriBuilder.String()
+}
+
 func getUrl(apiKey string, path string, values url.Values) (string, error) {
 	if apiKey == "" {
 		return "", errors.New("please specify an api key")
@@ -760,4 +776,188 @@ func GetEquipmentChangeLog(params EquipmentChangeLogParams, apiKey string) (stri
 	path := fmt.Sprintf("equipment/%d/%s/changeLog", params.siteId, params.serialNumber)
 
 	return getUrl(apiKey, path, nil)
+}
+
+// Account List API
+
+func GetAccountList(params AccountListParams, apiKey string) (string, error) {
+	values := url.Values{}
+	path := "accounts/list"
+
+	if params.size != nil {
+		size := *params.size
+
+		if size > -1 && size < 101 {
+			values.Add("size", strconv.Itoa(size))
+		}
+	}
+
+	if params.startIndex != nil {
+		startIndex := *params.startIndex
+
+		if startIndex > -1 {
+			values.Add("startIndex", strconv.Itoa(startIndex))
+		}
+	}
+
+	if params.searchText != "" {
+		values.Add("searchText", params.searchText)
+	}
+
+	if params.sortProperty != "" {
+		sortProperty := strings.ToLower(params.sortProperty)
+
+		switch sortProperty {
+			case "name":
+				values.Add("sortProperty", "Name")
+			case "country":
+				values.Add("sortProperty", "country")
+			case "city":
+				values.Add("sortProperty", "city")
+			case "address":
+				values.Add("sortProperty", "address")
+			case "zip":
+				values.Add("sortProperty", "zip")
+			case "fax":
+				values.Add("sortProperty", "fax")
+			case "phone":
+				values.Add("sortProperty", "phone")
+			case "notes":
+				values.Add("sortProperty", "notes")
+		}
+	}
+
+	if params.sortOrder != "" {
+		sortOrder := strings.ToLower(params.sortOrder)
+
+		switch sortOrder {
+			case "asc":
+				values.Add("sortOrder", "ASC")
+			case "desc":
+				values.Add("sortOrder", "DESC")
+		}
+	}
+
+	return getUrl(apiKey, path, values)
+}
+
+// Meters API
+
+func GetMetersData(params MetersDataParams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/meters", params.siteId)
+	values := url.Values{}
+
+	if params.startTime.IsZero() || params.endTime.IsZero() {
+		return "", errors.New("both start and end time are required")
+	}
+
+	if params.endTime.Before(params.startTime) {
+		return "", errors.New("end time must be after the start time")
+	}
+
+	timeUnitUpper := strings.ToUpper(params.timeUnit)
+
+	switch timeUnitUpper {
+		case "QUARTER_OF_AN_HOUR":
+		case "HOUR":
+		case "WEEK":
+		case "MONTH":
+		case "YEAR":
+			values.Add("timeUnit", timeUnitUpper)
+		default:
+			values.Add("timeUnit", "DAY")
+	}
+
+	if len(params.meters) > 0 {
+		meters := map[string]bool{
+			"Production":   false,
+			"Consumption":  false,
+			"FeedIn":      false,
+			"Purchased": false,
+		}
+		metersString := ""
+
+		for i := range params.meters {
+			meter := strings.ToLower(params.meters[i])
+
+			switch meter {
+				case "production":
+					meters["Production"] = true
+				case "consumption":
+					meters["Consumption"] = true
+				case "feedin":
+					meters["FeedIn"] = true
+				case "purchased":
+					meters["Purchased"] = true
+			}
+		}
+
+		for key, value := range meters {
+			if value {
+				metersString = fmt.Sprint(metersString, key, ',')
+			}
+		}
+
+		if len(metersString) > 0 {
+			metersString = metersString[:len(metersString)-1]
+			values.Add("meters", metersString)
+		}
+	}
+
+	values.Add("startTime", params.startTime.String())
+	values.Add("endTime", params.endTime.String())
+
+	return getUrl(apiKey, path, values)
+}
+
+// Sensors API
+
+func GetSensorsList(params SensorsListparams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("equipment/%d/sensors", params.siteId)
+
+	return getUrl(apiKey, path, nil)
+}
+
+func GetSensorData(params SensorDataparams, apiKey string) (string, error) {
+	if params.siteId < 0 {
+		return "", errors.New("site id must be an int >= 0")
+	}
+
+	path := fmt.Sprintf("site/%d/sensors", params.siteId)
+	values := url.Values{}
+
+	if params.startDate.IsZero() || params.endDate.IsZero() {
+		return "", errors.New("both start and end time are required")
+	}
+
+	if params.endDate.Before(params.startDate) {
+		return "", errors.New("end time must be after the start time")
+	}
+
+	if params.startDate.AddDate(0, 0, 7).Compare(params.endDate) > 1 {
+		return "", errors.New("this endpoint limits difference in start and end time to one week")
+	}
+
+	values.Add("startDate", params.startDate.String())
+	values.Add("endDate", params.endDate.String())
+
+	return getUrl(apiKey, path, values)
+}
+
+// API Versions
+
+func GetCurrentVersion() (string) {
+	return getUrlNoAuth("version/current", nil)
+}
+
+func GetSupportedVersion() (string) {
+	return getUrlNoAuth( "version/supported", nil)
 }

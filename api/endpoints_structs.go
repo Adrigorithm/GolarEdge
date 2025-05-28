@@ -7,7 +7,7 @@ import "time"
 // SiteListParams represents the parameters for the GetSiteList endpoint function.
 // if size is nil, the default value of 100 will be used.
 // if startIndex is nil, the default value of 0 will be used.
-// if sortText is "", it will be ignored.
+// if searchText is "", it will be ignored.
 // if sortProperty is not in ["Name", "Country", "State", "City", "Address", "Zip", "Status", "PeakPower", "InstallationDate", "Amount", "MaxSeverity", "CreationTime"], it is ignored.
 // if sortOrder is not in ["ASC", "DESC"], it will be ignored.
 // if status has values not in ["Active","Pending","Disabled","All"], they will be ignored, while keeping the valid ones.
@@ -208,3 +208,52 @@ type EquipmentChangeLogParams struct {
 
 // Account List API
 
+// AccountListParams the account and list of sub-accounts related to the given token.
+// if size is nil, the default value of 100 will be used.
+// if startIndex is nil, the default value of 0 will be used.
+// if searchText is "", it will be ignored.
+// if sortProperty is not in ["Name", "country", "city", "address", "zip", "fax", "phone", "notes"], it is ignored.
+// if sortOrder is not in ["ASC", "DESC"], it will be ignored.
+type AccountListParams struct {
+	size         *int
+	startIndex   *int
+	searchText   string
+	sortProperty string
+	sortOrder    string
+}
+
+// Meters API
+
+// MetersDataParams returns for each meter on site its lifetime energy reading, metadata and the device to which it’s connected to
+// if timeUnit is not in ["QUARTER_OF_AN_HOUR", "HOUR", "DAY", "WEEK", "MONTH", "YEAR"], it will default to "DAY".
+type MetersDataParams struct {
+	siteId int
+
+	timeUnit string
+
+	// Precision: 2006-01-02 11:00:00
+	startTime time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endTime time.Time
+
+	meters []string
+}
+
+// Sensors API
+
+type SensorsListparams struct {
+	siteId int
+}
+
+// SensorDataparams returns the data of all the sensors in the site, by the gateway they are connected to.
+// startDate and endDate should not exceed one week as this API is limited as such.
+type SensorDataparams struct {
+	siteId int
+
+	// Precision: 2006-01-02 11:00:00
+	startDate time.Time
+
+	// Precision: 2006-01-02 11:00:00
+	endDate time.Time
+}
