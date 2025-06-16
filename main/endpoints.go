@@ -49,7 +49,7 @@ func getUrl(apiKey string, path string, values url.Values) (string, error) {
 
 // Site Data API
 
-func GetSiteList(params SiteListParams, apiKey string) (string, error) {
+func GetSiteListRequest(params SiteListParams, apiKey string) (string, error) {
 	values := url.Values{}
 	path := "sites/list"
 
@@ -154,7 +154,7 @@ func GetSiteList(params SiteListParams, apiKey string) (string, error) {
 	return getUrl(apiKey, path, values)
 }
 
-func GetSite(params SiteParams, apiKey string) (string, error) {
+func GetSiteRequest(params SiteParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -164,7 +164,7 @@ func GetSite(params SiteParams, apiKey string) (string, error) {
 	return getUrl(apiKey, path, nil)
 }
 
-func GetSiteDataStartAndEndDates(params SiteDataStartAndEndDatesParams, apiKey string) (string, error) {
+func GetSiteDataStartAndEndDatesRequest(params SiteDataStartAndEndDatesParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -174,7 +174,7 @@ func GetSiteDataStartAndEndDates(params SiteDataStartAndEndDatesParams, apiKey s
 	return getUrl(apiKey, path, nil)
 }
 
-func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulkParams, apiKey string) (string, error) {
+func GetSiteDataStartAndEndDatesBulkRequest(params SiteDataStartAndEndDatesBulkParams, apiKey string) (string, error) {
 	if len(params.siteIds) == 0 {
 		return "", errors.New("you must at least specify one site id")
 	}
@@ -205,7 +205,7 @@ func GetSiteDataStartAndEndDatesBulk(params SiteDataStartAndEndDatesBulkParams, 
 
 }
 
-func GetSiteEnergyWithParsedSites(idsString string, startDate time.Time, endDate time.Time, timeUnit string, apiKey string) (string, error) {
+func GetSiteEnergyWithParsedSitesRequest(idsString string, startDate time.Time, endDate time.Time, timeUnit string, apiKey string) (string, error) {
 	path := fmt.Sprintf("site/%s/energy", idsString)
 	values := url.Values{}
 
@@ -245,15 +245,15 @@ func GetSiteEnergyWithParsedSites(idsString string, startDate time.Time, endDate
 	return getUrl(apiKey, path, values)
 }
 
-func GetSiteEnergy(params SiteEnergyParams, apiKey string) (string, error) {
+func GetSiteEnergyRequest(params SiteEnergyParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
 
-	return GetSiteEnergyWithParsedSites(strconv.Itoa(params.siteId), params.startDate, params.endDate, params.timeUnit, apiKey)
+	return GetSiteEnergyWithParsedSitesRequest(strconv.Itoa(params.siteId), params.startDate, params.endDate, params.timeUnit, apiKey)
 }
 
-func GetSiteEnergyBulk(params SiteEnergyBulkParams, apiKey string) (string, error) {
+func GetSiteEnergyBulkRequest(params SiteEnergyBulkParams, apiKey string) (string, error) {
 	if len(params.siteIds) == 0 {
 		return "", errors.New("you must at least specify one site id")
 	}
@@ -276,10 +276,10 @@ func GetSiteEnergyBulk(params SiteEnergyBulkParams, apiKey string) (string, erro
 		return "", errors.New("no valid site ids found. site ids must be positive integers")
 	}
 
-	return GetSiteEnergyWithParsedSites(siteIdsString, params.startDate, params.endDate, params.timeUnit, apiKey)
+	return GetSiteEnergyWithParsedSitesRequest(siteIdsString, params.startDate, params.endDate, params.timeUnit, apiKey)
 }
 
-func GetSiteEnergyTimePeriodWithParsedSites(idsString string, startDate time.Time, endDate time.Time, apiKey string) (string, error) {
+func GetSiteEnergyTimePeriodWithParsedSitesRequest(idsString string, startDate time.Time, endDate time.Time, apiKey string) (string, error) {
 	path := fmt.Sprintf("site/%s/energy?timeFrameEnergy", idsString)
 	values := url.Values{}
 
@@ -301,15 +301,15 @@ func GetSiteEnergyTimePeriodWithParsedSites(idsString string, startDate time.Tim
 	return getUrl(apiKey, path, values)
 }
 
-func GetSiteEnergyTimePeriod(params SiteEnergyTimePeriodParams, apiKey string) (string, error) {
+func GetSiteEnergyTimePeriodRequest(params SiteEnergyTimePeriodParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
 
-	return GetSiteEnergyTimePeriodWithParsedSites(strconv.Itoa(params.siteId), params.startDate, params.endDate, apiKey)
+	return GetSiteEnergyTimePeriodWithParsedSitesRequest(strconv.Itoa(params.siteId), params.startDate, params.endDate, apiKey)
 }
 
-func GetSiteEnergyTimePeriodBulk(params SiteEnergyTimePeriodBulkParams, apiKey string) (string, error) {
+func GetSiteEnergyTimePeriodBulkRequest(params SiteEnergyTimePeriodBulkParams, apiKey string) (string, error) {
 	if len(params.siteIds) == 0 {
 		return "", errors.New("you must at least specify one site id")
 	}
@@ -332,10 +332,10 @@ func GetSiteEnergyTimePeriodBulk(params SiteEnergyTimePeriodBulkParams, apiKey s
 		return "", errors.New("no valid site ids found. site ids must be positive integers")
 	}
 
-	return GetSiteEnergyTimePeriodWithParsedSites(siteIdsString, params.startDate, params.endDate, apiKey)
+	return GetSiteEnergyTimePeriodWithParsedSitesRequest(siteIdsString, params.startDate, params.endDate, apiKey)
 }
 
-func GetSitePowerWithParsedSites(idsString string, startTime time.Time, endTime time.Time, apiKey string) (string, error) {
+func GetSitePowerWithParsedSitesRequest(idsString string, startTime time.Time, endTime time.Time, apiKey string) (string, error) {
 	path := fmt.Sprintf("site/%s/power", idsString)
 	values := url.Values{}
 
@@ -357,15 +357,15 @@ func GetSitePowerWithParsedSites(idsString string, startTime time.Time, endTime 
 	return getUrl(apiKey, path, values)
 }
 
-func GetSitePower(params SitePowerParams, apiKey string) (string, error) {
+func GetSitePowerRequest(params SitePowerParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
 
-	return GetSitePowerWithParsedSites(strconv.Itoa(params.siteId), params.startTime, params.endTime, apiKey)
+	return GetSitePowerWithParsedSitesRequest(strconv.Itoa(params.siteId), params.startTime, params.endTime, apiKey)
 }
 
-func GetSitePowerBulk(params SitePowerBulkParams, apiKey string) (string, error) {
+func GetSitePowerBulkRequest(params SitePowerBulkParams, apiKey string) (string, error) {
 	if len(params.siteIds) == 0 {
 		return "", errors.New("you must at least specify one site id")
 	}
@@ -388,10 +388,10 @@ func GetSitePowerBulk(params SitePowerBulkParams, apiKey string) (string, error)
 		return "", errors.New("no valid site ids found. site ids must be positive integers")
 	}
 
-	return GetSitePowerWithParsedSites(siteIdsString, params.startTime, params.endTime, apiKey)
+	return GetSitePowerWithParsedSitesRequest(siteIdsString, params.startTime, params.endTime, apiKey)
 }
 
-func GetSiteOverview(params SiteOverviewParams, apiKey string) (string, error) {
+func GetSiteOverviewRequest(params SiteOverviewParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -401,7 +401,7 @@ func GetSiteOverview(params SiteOverviewParams, apiKey string) (string, error) {
 	return getUrl(apiKey, path, nil)
 }
 
-func GetSiteOverviewBulk(params SiteOverviewBulkParams, apiKey string) (string, error) {
+func GetSiteOverviewBulkRequest(params SiteOverviewBulkParams, apiKey string) (string, error) {
 	if len(params.siteIds) == 0 {
 		return "", errors.New("you must at least specify one site id")
 	}
@@ -431,7 +431,7 @@ func GetSiteOverviewBulk(params SiteOverviewBulkParams, apiKey string) (string, 
 	return getUrl(apiKey, path, nil)
 }
 
-func GetSitePowerDetailed(params SitePowerDetailedParams, apiKey string) (string, error) {
+func GetSitePowerDetailedRequest(params SitePowerDetailedParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -496,7 +496,7 @@ func GetSitePowerDetailed(params SitePowerDetailedParams, apiKey string) (string
 	return getUrl(apiKey, path, values)
 }
 
-func GetSiteEnergyDetailed(params SiteEnergyDetailedParams, apiKey string) (string, error) {
+func GetSiteEnergyDetailedRequest(params SiteEnergyDetailedParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -583,7 +583,7 @@ func GetSiteEnergyDetailed(params SiteEnergyDetailedParams, apiKey string) (stri
 	return getUrl(apiKey, path, values)
 }
 
-func GetSitePowerFlow(params SitePowerFlowParams, apiKey string) (string, error) {
+func GetSitePowerFlowRequest(params SitePowerFlowParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -593,7 +593,7 @@ func GetSitePowerFlow(params SitePowerFlowParams, apiKey string) (string, error)
 	return getUrl(apiKey, path, nil)
 }
 
-func GetStorageInformation(params StorageInformationParams, apiKey string) (string, error) {
+func GetStorageInformationRequest(params StorageInformationParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -642,7 +642,7 @@ func GetStorageInformation(params StorageInformationParams, apiKey string) (stri
 	return getUrl(apiKey, path, values)
 }
 
-func GetSiteImage(params SiteImageParams, apiKey string) (string, error) {
+func GetSiteImageRequest(params SiteImageParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -677,7 +677,7 @@ func GetSiteImage(params SiteImageParams, apiKey string) (string, error) {
 	return getUrl(apiKey, path, values)
 }
 
-func GetSiteEnvironmentalBenefits(params SiteEnvironmentalBenefitsParams, apiKey string) (string, error) {
+func GetSiteEnvironmentalBenefitsRequest(params SiteEnvironmentalBenefitsParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -697,7 +697,7 @@ func GetSiteEnvironmentalBenefits(params SiteEnvironmentalBenefitsParams, apiKey
 	return getUrl(apiKey, path, values)
 }
 
-func GetInstallerImage(params SiteImageParams, apiKey string) (string, error) {
+func GetInstallerImageRequest(params SiteImageParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -714,7 +714,7 @@ func GetInstallerImage(params SiteImageParams, apiKey string) (string, error) {
 
 // Site Equipment API
 
-func GetComponentsList(params ComponentsListParams, apiKey string) (string, error) {
+func GetComponentsListRequest(params ComponentsListParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -724,7 +724,7 @@ func GetComponentsList(params ComponentsListParams, apiKey string) (string, erro
 	return getUrl(apiKey, path, nil)
 }
 
-func GetInventory(params InventoryParams, apiKey string) (string, error) {
+func GetInventoryRequest(params InventoryParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -734,7 +734,7 @@ func GetInventory(params InventoryParams, apiKey string) (string, error) {
 	return getUrl(apiKey, path, nil)
 }
 
-func GetInverterTechnicalData(params InverterTechnicalDataParams, apiKey string) (string, error) {
+func GetInverterTechnicalDataRequest(params InverterTechnicalDataParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -764,7 +764,7 @@ func GetInverterTechnicalData(params InverterTechnicalDataParams, apiKey string)
 	return getUrl(apiKey, path, values)
 }
 
-func GetEquipmentChangeLog(params EquipmentChangeLogParams, apiKey string) (string, error) {
+func GetEquipmentChangeLogRequest(params EquipmentChangeLogParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -780,7 +780,7 @@ func GetEquipmentChangeLog(params EquipmentChangeLogParams, apiKey string) (stri
 
 // Account List API
 
-func GetAccountList(params AccountListParams, apiKey string) (string, error) {
+func GetAccountListRequest(params AccountListParams, apiKey string) (string, error) {
 	values := url.Values{}
 	path := "accounts/list"
 
@@ -843,7 +843,7 @@ func GetAccountList(params AccountListParams, apiKey string) (string, error) {
 
 // Meters API
 
-func GetMetersData(params MetersDataParams, apiKey string) (string, error) {
+func GetMetersDataRequest(params MetersDataParams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -916,7 +916,7 @@ func GetMetersData(params MetersDataParams, apiKey string) (string, error) {
 
 // Sensors API
 
-func GetSensorsList(params SensorsListparams, apiKey string) (string, error) {
+func GetSensorsListRequest(params SensorsListparams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -926,7 +926,7 @@ func GetSensorsList(params SensorsListparams, apiKey string) (string, error) {
 	return getUrl(apiKey, path, nil)
 }
 
-func GetSensorData(params SensorDataparams, apiKey string) (string, error) {
+func GetSensorDataRequest(params SensorDataparams, apiKey string) (string, error) {
 	if params.siteId < 0 {
 		return "", errors.New("site id must be an int >= 0")
 	}
@@ -954,10 +954,10 @@ func GetSensorData(params SensorDataparams, apiKey string) (string, error) {
 
 // API Versions
 
-func GetCurrentVersion() (string) {
+func GetCurrentVersionRequest() (string) {
 	return getUrlNoAuth("version/current", nil)
 }
 
-func GetSupportedVersion() (string) {
+func GetSupportedVersionRequest() (string) {
 	return getUrlNoAuth( "version/supported", nil)
 }
